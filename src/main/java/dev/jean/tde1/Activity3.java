@@ -1,3 +1,38 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:8969f91f9f521e9666f4e3b3ca5673601dce7d8efd3af9f653b474888002c276
-size 1453
+package dev.jean.tde1;
+
+import dev.jean.base.SimpleHadoop;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+
+import java.io.IOException;
+
+public class Activity3 extends BaseTDE<Text, IntWritable, Text, IntWritable> {
+
+    public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
+        System.exit((new Activity3()).run(true) ? 0 : 1);
+    }
+
+    public Activity3() {
+        super(Text.class, IntWritable.class, Text.class, IntWritable.class);
+    }
+
+    @Override
+    public void map(LongWritable longWritable, Text text, Mapper<LongWritable, Text, Text, IntWritable>.Context context) throws IOException, InterruptedException {
+        if (longWritable.get() == 0) return;
+        Transaction transaction = new Transaction(text.toString());
+        String key = String.format("%s.%s", transaction.getFlow(), transaction.getYear());
+        context.write(new Text(key), new IntWritable(1));
+    }
+
+    @Override
+    public void reduce(Text text, Iterable<IntWritable> values, Reducer<Text, IntWritable, Text, IntWritable>.Context context) throws IOException, InterruptedException {
+        int sum = 0;
+        for (IntWritable value : values) {
+            sum += value.get();
+        }
+        context.write(text, new IntWritable(sum));
+    }
+}

@@ -1,3 +1,6 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:50ec19d572d82b6555b91781766dbbaa90086a14e3358d5e663dd9ec1e4f1437
-size 48
+out/
+output/
+.idea/
+hadoop-3.2.1/
+target/
+*.iml

@@ -1,3 +1,39 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:48a39463453ade85d330f8df308d89722a492cee5c031af3904ab55e98f6d836
-size 1411
+package dev.jean.tde1;
+
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+
+import java.io.IOException;
+
+public class Activity1 extends BaseTDE<Text, IntWritable, Text, IntWritable> {
+
+    public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
+        System.exit((new Activity1()).run(true) ? 0 : 1);
+    }
+
+    public Activity1() {
+        super(Text.class, IntWritable.class, Text.class, IntWritable.class);
+    }
+
+    @Override
+    public void map(LongWritable lineNumber, Text value, Mapper<LongWritable, Text, Text, IntWritable>.Context context) throws IOException, InterruptedException {
+        if (lineNumber.get() == 0) return;
+        Transaction transaction = new Transaction(value.toString());
+        if ("Brazil".equalsIgnoreCase(transaction.getCountry())) {
+            context.write(new Text("count"), new IntWritable(1));
+        }
+    }
+
+    @Override
+    public void reduce(Text text, Iterable<IntWritable> values, Reducer<Text, IntWritable, Text, IntWritable>.Context context) throws IOException, InterruptedException {
+        int sum = 0;
+        for (IntWritable value : values) {
+            sum += value.get();
+        }
+        context.write(text, new IntWritable(sum));
+    }
+
+}
