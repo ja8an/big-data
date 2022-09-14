@@ -1,6 +1,5 @@
 package dev.jean.tde1;
 
-import dev.jean.base.SimpleHadoop;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -11,7 +10,7 @@ import java.io.IOException;
 
 public class Activity3 extends BaseTDE<Text, IntWritable, Text, IntWritable> {
 
-    public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
+    public static void main(final String[] args) throws IOException, InterruptedException, ClassNotFoundException {
         System.exit((new Activity3()).run(true) ? 0 : 1);
     }
 
@@ -20,7 +19,8 @@ public class Activity3 extends BaseTDE<Text, IntWritable, Text, IntWritable> {
     }
 
     @Override
-    public void map(LongWritable longWritable, Text text, Mapper<LongWritable, Text, Text, IntWritable>.Context context) throws IOException, InterruptedException {
+    public void map(final LongWritable longWritable, final Text text,
+                    final Mapper<LongWritable, Text, Text, IntWritable>.Context context) throws IOException, InterruptedException {
         if (longWritable.get() == 0) return;
         Transaction transaction = new Transaction(text.toString());
         String key = String.format("%s.%s", transaction.getFlow(), transaction.getYear());
@@ -28,7 +28,8 @@ public class Activity3 extends BaseTDE<Text, IntWritable, Text, IntWritable> {
     }
 
     @Override
-    public void reduce(Text text, Iterable<IntWritable> values, Reducer<Text, IntWritable, Text, IntWritable>.Context context) throws IOException, InterruptedException {
+    public void reduce(final Text text, final Iterable<IntWritable> values,
+                       final Reducer<Text, IntWritable, Text, IntWritable>.Context context) throws IOException, InterruptedException {
         int sum = 0;
         for (IntWritable value : values) {
             sum += value.get();

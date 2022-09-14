@@ -19,7 +19,7 @@ import java.util.Objects;
 
 public class Activity7B extends SimpleHadoop<LongWritable, Text, Text, Activity7B.Commodity, Text, DoubleWritable> {
 
-    public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
+    public static void main(final String[] args) throws IOException, InterruptedException, ClassNotFoundException {
         System.exit((new Activity7B()).run(true) ? 0 : 1);
     }
 
@@ -29,7 +29,8 @@ public class Activity7B extends SimpleHadoop<LongWritable, Text, Text, Activity7
     }
 
     @Override
-    protected void map(LongWritable longWritable, Text text, Mapper<LongWritable, Text, Text, Commodity>.Context context) throws IOException, InterruptedException {
+    protected void map(final LongWritable longWritable, final Text text,
+                       final Mapper<LongWritable, Text, Text, Commodity>.Context context) throws IOException, InterruptedException {
         String[] split = text.toString().split("\t");
         String[] left = split[0].split("\\.");
         String flow = left[0];
@@ -39,7 +40,8 @@ public class Activity7B extends SimpleHadoop<LongWritable, Text, Text, Activity7
     }
 
     @Override
-    protected void reduce(Text text, Iterable<Commodity> values, Reducer<Text, Commodity, Text, DoubleWritable>.Context context) throws IOException, InterruptedException {
+    protected void reduce(final Text text, final Iterable<Commodity> values,
+                          final Reducer<Text, Commodity, Text, DoubleWritable>.Context context) throws IOException, InterruptedException {
         String commodity = null;
         double last = 0;
         for (Commodity value : values) {
@@ -66,13 +68,13 @@ public class Activity7B extends SimpleHadoop<LongWritable, Text, Text, Activity7
         private double value;
 
         @Override
-        public void write(DataOutput out) throws IOException {
+        public void write(final DataOutput out) throws IOException {
             out.writeUTF(commodity);
             out.writeDouble(value);
         }
 
         @Override
-        public void readFields(DataInput in) throws IOException {
+        public void readFields(final DataInput in) throws IOException {
             this.commodity = in.readUTF();
             this.value = in.readDouble();
         }

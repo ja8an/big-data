@@ -1,17 +1,24 @@
 package dev.jean.utils;
 
 import java.util.Locale;
+import java.util.Objects;
 
-public class StringUtils {
+public final class StringUtils {
 
-    public static String slugify(String input) {
-        return input
-                .replaceAll("(\\W+)", "-")
-                .replaceAll("([A-Z])", "-$1")
-                .replaceAll("(\\w)(\\d+)", "$1-$2")
-                .replaceAll("(-{2,})", "-")
-                .replaceAll("(-$|^-)", "")
-                .toLowerCase(Locale.ROOT);
+    private StringUtils() {
+    }
+
+    /**
+     * @param input string
+     * @return slugified string
+     */
+    public static String slugify(final String input) {
+        return Objects.requireNonNullElse(input, "") // Guarantees there will be an input
+                .replaceAll("(\\W+)", "-") // Replaces all non word/number characters with '-'
+                .replaceAll("([A-Z])", "-$1") // Adds '-' before capital letters
+                .replaceAll("(\\w)(\\d+)", "$1-$2") // Adds a '-' before numbers succeeding letters
+                .replaceAll("(-{2,})", "-") // Remove consecutive '-'
+                .trim().toLowerCase(Locale.ROOT);
     }
 
 }

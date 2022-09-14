@@ -1,7 +1,10 @@
 package dev.jean.tde1;
 
 import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.ToString;
+
+import java.util.Objects;
 
 @Getter
 @ToString
@@ -18,21 +21,22 @@ public class Transaction {
     private final double amount;
     private final String category;
 
-    public Transaction(String line) {
-        String[] temp = line.split(";");
-        this.country = temp[0];
-        this.year = Integer.parseInt(temp[1]);
-        this.commodityCode = temp[2];
-        this.commodity = temp[3];
-        this.flow = temp[4];
-        this.price = Double.parseDouble(temp[5]);
-        this.weight = Double.parseDouble(assureNotEmpty(temp[6]));
-        this.unit = temp[7];
-        this.amount = Double.parseDouble(temp[8]);
-        this.category = temp[9];
+    @SneakyThrows
+    public Transaction(final String line) {
+        String[] columns = line.split(";");
+        this.country = columns[0];
+        this.year = Integer.parseInt(columns[1]);
+        this.commodityCode = columns[2];
+        this.commodity = columns[3];
+        this.flow = columns[4];
+        this.price = Double.parseDouble(columns[5]);
+        this.weight = Double.parseDouble(assureNotEmpty(columns[6]));
+        this.unit = columns[7];
+        this.amount = Double.parseDouble(columns[8]);
+        this.category = columns[9];
     }
 
-    private String assureNotEmpty(String input) {
-        return input.length() > 0 ? input : "0";
+    private String assureNotEmpty(final String input) {
+        return Objects.requireNonNullElse(input, "").trim().length() > 0 ? input : "0";
     }
 }

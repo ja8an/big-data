@@ -1,5 +1,6 @@
 package dev.jean.base;
 
+import lombok.NoArgsConstructor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
@@ -23,7 +24,7 @@ public abstract class BaseHadoop<MAP_KEY_IN, MAP_VALUE_IN, MAP_KEY_OUT, MAP_VALU
     private static BaseHadoop<?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?> objects;
     private String jobName;
     private final String inputFile;
-    protected String outputFolder;
+    private String outputFolder;
     private boolean clearOutputFolder = false;
 
     private final Class<MAP_KEY_OUT> mapOutputKeyClass;
@@ -31,15 +32,15 @@ public abstract class BaseHadoop<MAP_KEY_IN, MAP_VALUE_IN, MAP_KEY_OUT, MAP_VALU
     private final Class<RED_KEY_OUT> outputKeyClass;
     private final Class<RED_VALUE_OUT> outputValueClass;
 
-    private final BaseHadoop<MAP_KEY_IN, MAP_VALUE_IN, MAP_KEY_OUT, MAP_VALUE_OUT,
-            COM_KEY_IN, COM_VALUE_IN, COM_KEY_OUT, COM_VALUE_OUT,
-            RED_KEY_IN, RED_VALUE_IN, RED_KEY_OUT, RED_VALUE_OUT> self = this;
-
-    public BaseHadoop(String inputFile, Class<MAP_KEY_OUT> mapOutputKeyClass, Class<MAP_VALUE_OUT> mapOutputValueClass, Class<RED_KEY_OUT> outputKeyClass, Class<RED_VALUE_OUT> outputValueClass) {
+    public BaseHadoop(final String inputFile,
+                      final Class<MAP_KEY_OUT> mapOutputKeyClass, final Class<MAP_VALUE_OUT> mapOutputValueClass,
+                      final Class<RED_KEY_OUT> outputKeyClass, final Class<RED_VALUE_OUT> outputValueClass) {
         this(inputFile, "output/data", mapOutputKeyClass, mapOutputValueClass, outputKeyClass, outputValueClass);
     }
 
-    public BaseHadoop(String inputFile, String outputFolder, Class<MAP_KEY_OUT> mapOutputKeyClass, Class<MAP_VALUE_OUT> mapOutputValueClass, Class<RED_KEY_OUT> outputKeyClass, Class<RED_VALUE_OUT> outputValueClass) {
+    public BaseHadoop(final String inputFile, final String outputFolder,
+                      final Class<MAP_KEY_OUT> mapOutputKeyClass, final Class<MAP_VALUE_OUT> mapOutputValueClass,
+                      final Class<RED_KEY_OUT> outputKeyClass, final Class<RED_VALUE_OUT> outputValueClass) {
         this.inputFile = inputFile;
         this.outputFolder = outputFolder;
 
@@ -51,7 +52,7 @@ public abstract class BaseHadoop<MAP_KEY_IN, MAP_VALUE_IN, MAP_KEY_OUT, MAP_VALU
         this.jobName = getClass().getSimpleName();
     }
 
-    public void jobName(String jobName) {
+    public void jobName(final String jobName) {
         this.jobName = jobName;
     }
 
@@ -59,26 +60,27 @@ public abstract class BaseHadoop<MAP_KEY_IN, MAP_VALUE_IN, MAP_KEY_OUT, MAP_VALU
         this.clearOutputFolder = true;
     }
 
-    protected abstract void map(MAP_KEY_IN key, MAP_VALUE_IN value, Mapper<MAP_KEY_IN, MAP_VALUE_IN, MAP_KEY_OUT, MAP_VALUE_OUT>.Context context) throws IOException, InterruptedException;
+    public void outputFolder(final String outputFolder) {
+        this.outputFolder = outputFolder;
+    }
 
-    abstract void combine(COM_KEY_IN key, Iterable<COM_VALUE_IN> values, Reducer<COM_KEY_IN, COM_VALUE_IN, COM_KEY_OUT, COM_VALUE_OUT>.Context context) throws IOException, InterruptedException;
+    protected abstract void map(MAP_KEY_IN key, MAP_VALUE_IN value,
+                                Mapper<MAP_KEY_IN, MAP_VALUE_IN, MAP_KEY_OUT, MAP_VALUE_OUT>.Context context) throws IOException, InterruptedException;
 
-    protected abstract void reduce(RED_KEY_IN key, Iterable<RED_VALUE_IN> values, Reducer<RED_KEY_IN, RED_VALUE_IN, RED_KEY_OUT, RED_VALUE_OUT>.Context context) throws IOException, InterruptedException;
+    abstract void combine(COM_KEY_IN key, Iterable<COM_VALUE_IN> values,
+                          Reducer<COM_KEY_IN, COM_VALUE_IN, COM_KEY_OUT, COM_VALUE_OUT>.Context context) throws IOException, InterruptedException;
+
+    protected abstract void reduce(RED_KEY_IN key, Iterable<RED_VALUE_IN> values,
+                                   Reducer<RED_KEY_IN, RED_VALUE_IN, RED_KEY_OUT, RED_VALUE_OUT>.Context context) throws IOException, InterruptedException;
 
     public boolean run() throws IOException, InterruptedException, ClassNotFoundException {
         return run(false);
     }
 
-    public boolean run(boolean verbose) throws IOException, InterruptedException, ClassNotFoundException {
+    public boolean run(final boolean verbose) throws IOException, InterruptedException, ClassNotFoundException {
         BasicConfigurator.configure();
 
         Configuration config = new Configuration();
-
-        // arquivo de entrada
-        Path input = new Path(inputFile);
-
-        // arquivo de saida
-        Path output = new Path(outputFolder);
 
         // criacao do job e seu nome
         Job job = Job.getInstance(config, jobName);
@@ -97,7 +99,11 @@ public abstract class BaseHadoop<MAP_KEY_IN, MAP_VALUE_IN, MAP_KEY_OUT, MAP_VALU
         job.setOutputValueClass(outputValueClass);
 
         // cadastro dos arquivos de entrada e saida
+        // arquivo de entrada
+        Path input = new Path(inputFile);
         FileInputFormat.addInputPath(job, input);
+        // arquivo de saida
+        Path output = new Path(outputFolder);
         FileOutputFormat.setOutputPath(job, output);
 
         if (clearOutputFolder) {
@@ -108,39 +114,38 @@ public abstract class BaseHadoop<MAP_KEY_IN, MAP_VALUE_IN, MAP_KEY_OUT, MAP_VALU
         return job.waitForCompletion(verbose);
     }
 
+    @NoArgsConstructor
     static class BaseMapper<MAP_KEY_IN, MAP_VALUE_IN, MAP_KEY_OUT, MAP_VALUE_OUT> extends Mapper<MAP_KEY_IN, MAP_VALUE_IN, MAP_KEY_OUT, MAP_VALUE_OUT> {
-        public BaseMapper() {
-            super();
-        }
-
         @Override
         @SuppressWarnings("unchecked")
-        public void map(MAP_KEY_IN key, MAP_VALUE_IN value, Context context) throws IOException, InterruptedException {
-            BaseHadoop<MAP_KEY_IN, MAP_VALUE_IN, MAP_KEY_OUT, MAP_VALUE_OUT, Object, Object, Object, Object, Object, Object, Object, Object> mapper = (BaseHadoop<MAP_KEY_IN, MAP_VALUE_IN, MAP_KEY_OUT, MAP_VALUE_OUT, Object, Object, Object, Object, Object, Object, Object, Object>) objects;
+        public void map(final MAP_KEY_IN key, final MAP_VALUE_IN value, final Context context) throws IOException, InterruptedException {
+            BaseHadoop<MAP_KEY_IN, MAP_VALUE_IN, MAP_KEY_OUT, MAP_VALUE_OUT, Object, Object, Object, Object, Object, Object, Object, Object> mapper =
+                    (BaseHadoop<MAP_KEY_IN, MAP_VALUE_IN, MAP_KEY_OUT, MAP_VALUE_OUT, Object, Object, Object, Object, Object, Object, Object, Object>) objects;
             mapper.map(key, value, context);
         }
     }
 
+    @NoArgsConstructor
     static class BaseReducer<RED_KEY_IN, RED_VALUE_IN, RED_KEY_OUT, RED_VALUE_OUT> extends Reducer<RED_KEY_IN, RED_VALUE_IN, RED_KEY_OUT, RED_VALUE_OUT> {
-        public BaseReducer() {
-        }
 
         @Override
         @SuppressWarnings("unchecked")
-        protected void reduce(RED_KEY_IN key, Iterable<RED_VALUE_IN> values, Reducer<RED_KEY_IN, RED_VALUE_IN, RED_KEY_OUT, RED_VALUE_OUT>.Context context) throws IOException, InterruptedException {
-            BaseHadoop<Object, Object, Object, Object, Object, Object, Object, Object, RED_KEY_IN, RED_VALUE_IN, RED_KEY_OUT, RED_VALUE_OUT> reducer = (BaseHadoop<Object, Object, Object, Object, Object, Object, Object, Object, RED_KEY_IN, RED_VALUE_IN, RED_KEY_OUT, RED_VALUE_OUT>) objects;
+        protected void reduce(final RED_KEY_IN key, final Iterable<RED_VALUE_IN> values,
+                              final Reducer<RED_KEY_IN, RED_VALUE_IN, RED_KEY_OUT, RED_VALUE_OUT>.Context context) throws IOException, InterruptedException {
+            BaseHadoop<Object, Object, Object, Object, Object, Object, Object, Object, RED_KEY_IN, RED_VALUE_IN, RED_KEY_OUT, RED_VALUE_OUT> reducer =
+                    (BaseHadoop<Object, Object, Object, Object, Object, Object, Object, Object, RED_KEY_IN, RED_VALUE_IN, RED_KEY_OUT, RED_VALUE_OUT>) objects;
             reducer.reduce(key, values, context);
         }
     }
 
+    @NoArgsConstructor
     static class BaseCombiner<COM_KEY_IN, COM_VALUE_IN, COM_KEY_OUT, COM_VALUE_OUT> extends Reducer<COM_KEY_IN, COM_VALUE_IN, COM_KEY_OUT, COM_VALUE_OUT> {
-        public BaseCombiner() {
-        }
-
         @Override
         @SuppressWarnings("unchecked")
-        protected void reduce(COM_KEY_IN key, Iterable<COM_VALUE_IN> values, Reducer<COM_KEY_IN, COM_VALUE_IN, COM_KEY_OUT, COM_VALUE_OUT>.Context context) throws IOException, InterruptedException {
-            BaseHadoop<Object, Object, Object, Object, COM_KEY_IN, COM_VALUE_IN, COM_KEY_OUT, COM_VALUE_OUT, Object, Object, Object, Object> reducer = (BaseHadoop<Object, Object, Object, Object, COM_KEY_IN, COM_VALUE_IN, COM_KEY_OUT, COM_VALUE_OUT, Object, Object, Object, Object>) objects;
+        protected void reduce(final COM_KEY_IN key, final Iterable<COM_VALUE_IN> values,
+                              final Reducer<COM_KEY_IN, COM_VALUE_IN, COM_KEY_OUT, COM_VALUE_OUT>.Context context) throws IOException, InterruptedException {
+            BaseHadoop<Object, Object, Object, Object, COM_KEY_IN, COM_VALUE_IN, COM_KEY_OUT, COM_VALUE_OUT, Object, Object, Object, Object> reducer =
+                    (BaseHadoop<Object, Object, Object, Object, COM_KEY_IN, COM_VALUE_IN, COM_KEY_OUT, COM_VALUE_OUT, Object, Object, Object, Object>) objects;
             reducer.combine(key, values, context);
         }
     }

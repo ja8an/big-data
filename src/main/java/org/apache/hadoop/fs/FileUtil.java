@@ -5,25 +5,6 @@
 
 package org.apache.hadoop.fs;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
-import java.util.jar.Attributes.Name;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import org.apache.commons.collections.map.CaseInsensitiveMap;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -38,12 +19,30 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.nativeio.NativeIO;
 import org.apache.hadoop.io.nativeio.NativeIO.POSIX;
-import org.apache.hadoop.io.nativeio.NativeIO.Windows;
-import org.apache.hadoop.io.nativeio.NativeIO.Windows.AccessRight;
 import org.apache.hadoop.util.Shell;
-import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.Shell.ExitCodeException;
 import org.apache.hadoop.util.Shell.ShellCommandExecutor;
+import org.apache.hadoop.util.StringUtils;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
+import java.util.jar.Attributes.Name;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 @Public
 @Evolving
@@ -60,7 +59,7 @@ public class FileUtil {
         } else {
             Path[] ret = new Path[stats.length];
 
-            for(int i = 0; i < stats.length; ++i) {
+            for (int i = 0; i < stats.length; ++i) {
                 ret[i] = stats[i].getPath();
             }
 
@@ -134,7 +133,7 @@ public class FileUtil {
         boolean deletionSucceeded = true;
         File[] contents = dir.listFiles();
         if (contents != null) {
-            for(int i = 0; i < contents.length; ++i) {
+            for (int i = 0; i < contents.length; ++i) {
                 if (contents[i].isFile()) {
                     if (!deleteImpl(contents[i], true)) {
                         deletionSucceeded = false;
@@ -152,7 +151,9 @@ public class FileUtil {
         return deletionSucceeded;
     }
 
-    /** @deprecated */
+    /**
+     * @deprecated
+     */
     @Deprecated
     public static void fullyDelete(FileSystem fs, Path dir) throws IOException {
         fs.delete(dir, true);
@@ -193,7 +194,7 @@ public class FileUtil {
                 Path[] var16 = srcs;
                 int var11 = srcs.length;
 
-                for(int var12 = 0; var12 < var11; ++var12) {
+                for (int var12 = 0; var12 < var11; ++var12) {
                     Path src = var16[var12];
 
                     try {
@@ -233,7 +234,7 @@ public class FileUtil {
 
             contents = srcFS.listStatus(src);
 
-            for(int i = 0; i < contents.length; ++i) {
+            for (int i = 0; i < contents.length; ++i) {
                 copy(srcFS, contents[i], dstFS, new Path(dst, contents[i].getPath().getName()), deleteSource, overwrite, conf);
             }
         } else {
@@ -265,7 +266,7 @@ public class FileUtil {
                 FileStatus[] contents = srcFS.listStatus(srcDir);
                 Arrays.sort(contents);
 
-                for(int i = 0; i < contents.length; ++i) {
+                for (int i = 0; i < contents.length; ++i) {
                     if (contents[i].isFile()) {
                         FSDataInputStream in = srcFS.open(contents[i].getPath());
 
@@ -297,7 +298,7 @@ public class FileUtil {
 
             contents = listFiles(src);
 
-            for(int i = 0; i < contents.length; ++i) {
+            for (int i = 0; i < contents.length; ++i) {
                 copy(contents[i], dstFS, new Path(dst, contents[i].getName()), deleteSource, conf);
             }
         } else {
@@ -336,7 +337,7 @@ public class FileUtil {
 
             FileStatus[] contents = srcFS.listStatus(src);
 
-            for(int i = 0; i < contents.length; ++i) {
+            for (int i = 0; i < contents.length; ++i) {
                 copy(srcFS, contents[i], new File(dst, contents[i].getPath().getName()), deleteSource, conf);
             }
         } else {
@@ -355,7 +356,7 @@ public class FileUtil {
                     throw new IOException("Target " + dst + " is a directory");
                 }
 
-                return checkDest((String)null, dstFS, new Path(dst, srcName), overwrite);
+                return checkDest((String) null, dstFS, new Path(dst, srcName), overwrite);
             }
 
             if (!overwrite) {
@@ -387,7 +388,7 @@ public class FileUtil {
         } else {
             File[] allFiles = dir.listFiles();
             if (allFiles != null) {
-                for(int i = 0; i < allFiles.length; ++i) {
+                for (int i = 0; i < allFiles.length; ++i) {
                     boolean isSymLink;
                     try {
                         isSymLink = FileUtils.isSymlink(allFiles[i]);
@@ -411,8 +412,8 @@ public class FileUtil {
         try {
             Enumeration entries = zipFile.entries();
 
-            while(entries.hasMoreElements()) {
-                ZipEntry entry = (ZipEntry)entries.nextElement();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = (ZipEntry) entries.nextElement();
                 if (!entry.isDirectory()) {
                     InputStream in = zipFile.getInputStream(entry);
 
@@ -428,7 +429,7 @@ public class FileUtil {
                             byte[] buffer = new byte[8192];
 
                             int i;
-                            while((i = in.read(buffer)) != -1) {
+                            while ((i = in.read(buffer)) != -1) {
                                 out.write(buffer, 0, i);
                             }
                         } finally {
@@ -499,7 +500,7 @@ public class FileUtil {
 
             tis = new TarArchiveInputStream(inputStream);
 
-            for(TarArchiveEntry entry = tis.getNextTarEntry(); entry != null; entry = tis.getNextTarEntry()) {
+            for (TarArchiveEntry entry = tis.getNextTarEntry(); entry != null; entry = tis.getNextTarEntry()) {
                 unpackEntries(tis, entry, untarDir);
             }
         } finally {
@@ -518,7 +519,7 @@ public class FileUtil {
                 TarArchiveEntry[] var8 = entry.getDirectoryEntries();
                 int var9 = var8.length;
 
-                for(int var10 = 0; var10 < var9; ++var10) {
+                for (int var10 = 0; var10 < var9; ++var10) {
                     TarArchiveEntry e = var8[var10];
                     unpackEntries(tis, e, subDir);
                 }
@@ -533,7 +534,7 @@ public class FileUtil {
                 BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(subDir));
 
                 int count;
-                while((count = tis.read(data)) != -1) {
+                while ((count = tis.read(data)) != -1) {
                     outputStream.write(data, 0, count);
                 }
 
@@ -747,7 +748,7 @@ public class FileUtil {
         if (!src.renameTo(target)) {
             int var2 = 5;
 
-            while(target.exists() && !target.delete() && var2-- >= 0) {
+            while (target.exists() && !target.delete() && var2-- >= 0) {
                 try {
                     Thread.sleep(1000L);
                 } catch (InterruptedException var4) {
@@ -788,8 +789,8 @@ public class FileUtil {
         Map<String, String> env = Shell.WINDOWS ? new CaseInsensitiveMap(callerEnv) : callerEnv;
         String[] classPathEntries = inputClassPath.split(File.pathSeparator);
 
-        for(int i = 0; i < classPathEntries.length; ++i) {
-            classPathEntries[i] = StringUtils.replaceTokens(classPathEntries[i], StringUtils.ENV_VAR_PATTERN, (Map)env);
+        for (int i = 0; i < classPathEntries.length; ++i) {
+            classPathEntries[i] = StringUtils.replaceTokens(classPathEntries[i], StringUtils.ENV_VAR_PATTERN, (Map) env);
         }
 
         File workingDir = new File(pwd.toString());
@@ -802,7 +803,7 @@ public class FileUtil {
         String[] var9 = classPathEntries;
         int var10 = classPathEntries.length;
 
-        for(int var11 = 0; var11 < var10; ++var11) {
+        for (int var11 = 0; var11 < var10; ++var11) {
             String classPathEntry = var9[var11];
             if (classPathEntry.length() != 0) {
                 if (!classPathEntry.endsWith("*")) {
@@ -827,7 +828,7 @@ public class FileUtil {
                         FileStatus[] var16 = wildcardJars;
                         int var17 = wildcardJars.length;
 
-                        for(int var18 = 0; var18 < var17; ++var18) {
+                        for (int var18 = 0; var18 < var17; ++var18) {
                             FileStatus wildcardJar = var16[var18];
                             foundWildCardJar = true;
                             classPathEntryList.add(wildcardJar.getPath().toUri().toURL().toExternalForm());
@@ -863,7 +864,9 @@ public class FileUtil {
         return var32;
     }
 
-    /** @deprecated */
+    /**
+     * @deprecated not used anymore
+     */
     @Deprecated
     public static class HardLink extends org.apache.hadoop.fs.HardLink {
         public HardLink() {
