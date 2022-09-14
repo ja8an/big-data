@@ -1,5 +1,8 @@
 package dev.jean.tde1;
 
+import dev.jean.BaseJob;
+import dev.jean.utils.InputFile;
+import lombok.NoArgsConstructor;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -8,36 +11,40 @@ import org.apache.hadoop.mapreduce.Reducer;
 
 import java.io.IOException;
 
-public class Activity7 extends BaseTDE<Text, DoubleWritable, Text, DoubleWritable> {
-
-    public static void main(final String[] args) throws IOException, InterruptedException, ClassNotFoundException {
-        System.exit((new Activity7()).run() ? 0 : 1);
-    }
-
+public class Activity7 extends BaseJob<LongWritable, Text, Text, DoubleWritable, Text, DoubleWritable> {
     public Activity7() {
-        super(Text.class, DoubleWritable.class, Text.class, DoubleWritable.class);
+        super(InputFile.TRANSACTIONS, MyMapper.class, MyReducer.class);
     }
 
-    @Override
-    protected void map(final LongWritable longWritable, final Text text,
-                       final Mapper<LongWritable, Text, Text, DoubleWritable>.Context context) throws IOException, InterruptedException {
-        if (longWritable.get() == 0) return;
-        Transaction transaction = new Transaction(text.toString());
-        final int year = 2016;
-        if (transaction.getYear() == year) {
-            String key = String.format("%s.%s", transaction.getFlow(), transaction.getCommodityCode());
-            context.write(new Text(key), new DoubleWritable(transaction.getAmount()));
+    @NoArgsConstructor
+    public static class MyMapper extends Mapper<LongWritable, Text, Text, DoubleWritable> {
+        @Override
+        protected void map(LongWritable lineNumber, Text value, Mapper<LongWritable, Text, Text, DoubleWritable>.Context context) throws IOException, InterruptedException {
+            if (lineNumber.get() == 0) return;
+            Transaction transaction = Transaction.from(value);
+            if (transaction.getYear() == 2016) {
+                String key = String.format("%s.%s",
+                        transaction.getCommodityCode(),
+                        transaction.getFlow()
+                );
+                context.write(new Text(key), new DoubleWritable(transaction.getAmount()));
+            }
         }
     }
 
-    @Override
-    protected void reduce(final Text text, final Iterable<DoubleWritable> values,
-                          final Reducer<Text, DoubleWritable, Text, DoubleWritable>.Context context) throws IOException, InterruptedException {
-        float sum = 0;
-        for (DoubleWritable value : values) {
-            sum += value.get();
+    @NoArgsConstructor
+    public static class MyReducer extends Reducer<Text, DoubleWritable, Text, DoubleWritable> {
+        @Override
+        protected void reduce(Text key, Iterable<DoubleWritable> values, Reducer<Text, DoubleWritable, Text, DoubleWritable>.Context context) throws IOException, InterruptedException {
+            double sum = 0;
+            for (DoubleWritable value : values) {
+                sum += value.get();
+            }
+            context.write(key, new DoubleWritable(sum));
         }
-        context.write(text, new DoubleWritable(sum));
     }
 
+    public static void main(String[] args) {
+        BaseJob.debug(Activity7.class);
+    }
 }

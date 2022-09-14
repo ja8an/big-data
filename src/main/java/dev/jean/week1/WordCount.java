@@ -1,5 +1,8 @@
 package dev.jean.week1;
 
+import java.io.IOException;
+import java.text.Normalizer;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;

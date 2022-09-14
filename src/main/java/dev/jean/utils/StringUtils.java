@@ -18,6 +18,7 @@ public final class StringUtils {
                 .replaceAll("([A-Z])", "-$1") // Adds '-' before capital letters
                 .replaceAll("(\\w)(\\d+)", "$1-$2") // Adds a '-' before numbers succeeding letters
                 .replaceAll("(-{2,})", "-") // Remove consecutive '-'
+                .replaceAll("(-$|^-)", "")
                 .trim().toLowerCase(Locale.ROOT);
     }
 
